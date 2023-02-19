@@ -8,10 +8,15 @@ class PostModel(BaseModel):
     content: str
     published: bool = True
 
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
 class Post(PostModel):
     id: int
     created_at: datetime
     owner_id: int
+    owner: UserOut
     
 class UserModel(BaseModel):
     email: EmailStr
@@ -25,10 +30,6 @@ class UserModel(BaseModel):
             raise ValueError("Passwords do not match, try again")
         return password
 
-class UserOut(BaseModel):
-    id: int
-    email: EmailStr
-    created_at: datetime
 
 class UserLogin(BaseModel):
     email: EmailStr
