@@ -3,3 +3,12 @@
 
 # Ignore venv folder
 venv
+
+# Ignore .vscode folder
+.vscode
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
