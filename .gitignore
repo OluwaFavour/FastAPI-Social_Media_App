@@ -1,5 +1,6 @@
 # Ignore all hidden files 
-*. 
+.*
+!/.gitignore
 
 # Ignore venv folder
 venv

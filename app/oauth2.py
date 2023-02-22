@@ -4,14 +4,15 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
+from app.config import settings
 from app.database import conn, cur
 from app.schemas import TokenData
 
 oauth2_scheme  = OAuth2PasswordBearer(tokenUrl='login')
 
-SECRET_KEY = "2ae2fab5a0e0447e3f8da65c3ab923750a8fa568cd53b7212ccd731fec886674"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = int(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
 async def get_access_token(data: dict):
     to_encode = data.copy() # Copy data/payload to a new variable

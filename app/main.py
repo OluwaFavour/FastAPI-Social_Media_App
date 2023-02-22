@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from app.routers import post, user, auth
+from app.config import settings
 
 app = FastAPI()
+
+print(settings.DB_HOST)
 
 # Routers
 app.include_router(post.router)

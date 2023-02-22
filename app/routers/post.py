@@ -82,7 +82,7 @@ async def create_posts(request: PostModel, current_user: DictRow = Depends(get_c
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int, current_user: DictRow = Depends(get_current_user)):
-    current_user_id = current_user
+    current_user_id = current_user.get("id")
     # Make Query
     post = cur.execute("""
                 SELECT * FROM posts WHERE id = %s;
@@ -107,7 +107,7 @@ async def delete_post(id: int, current_user: DictRow = Depends(get_current_user)
 
 @router.put("/{id}", response_model=Post, status_code=status.HTTP_202_ACCEPTED)
 async def update_post(id: int, request: PostModel, current_user: DictRow = Depends(get_current_user)):
-    current_user_id = current_user
+    current_user_id = current_user.get('id')
     # Make Query
     post = cur.execute("""
                 SELECT posts.*,
@@ -123,7 +123,7 @@ async def update_post(id: int, request: PostModel, current_user: DictRow = Depen
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with if: {id} was not found")
-
+    print(current_user_id)
     # Update Post if current logged in user is owner
     if post.get("owner_id") != current_user_id:
         raise HTTPException(
@@ -131,7 +131,13 @@ async def update_post(id: int, request: PostModel, current_user: DictRow = Depen
 
     updated_post = cur.execute("""
                             UPDATE posts SET title = %s, content = %s, published = %s
-                            WHERE id = %s RETURNING *;
+                            WHERE id = %s
+                            RETURNING posts.*,
+                            (
+                                SELECT json_build_object('id', users.id, 'email', users.email, 'created_at', users.created_at)
+                                FROM users
+                                WHERE id = posts.owner_id
+                            ) AS owner;
                             """, (request.title, request.content, request.published, id)).fetchone()
     # Save CHanges
     conn.commit()
