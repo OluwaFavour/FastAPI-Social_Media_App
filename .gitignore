@@ -2,11 +2,14 @@
 .*
 !/.gitignore
 
+__pycache__
+__pycache__/*
+
 # Ignore venv folder
 venv
 
 # Ignore .vscode folder
-.vscode/*
+.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
