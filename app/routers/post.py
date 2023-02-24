@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.database import conn, cur, DictRow
 from app.oauth2 import get_current_user
-from app.schemas import Post, PostModel
+from app.schemas import Post, PostModel, PostOut
 
 router = APIRouter(
     prefix="/posts",
@@ -13,7 +13,7 @@ router = APIRouter(
 # GET
 
 
-@router.get("/", response_model=List[Post])
+@router.get("/", response_model=List[PostOut])
 async def get_posts(search: str = "" , limit: int = 10, offset: int = 0):
     cur.execute(
         """
@@ -22,10 +22,12 @@ async def get_posts(search: str = "" , limit: int = 10, offset: int = 0):
                     SELECT json_build_object('id', users.id, 'email', users.email, 'created_at', users.created_at)
                     FROM users
                     WHERE id = posts.owner_id
-                ) AS owner
-                FROM posts
+                ) AS owner,
+                COUNT(votes.post_id) AS votes
+                FROM posts LEFT JOIN votes ON posts.id = votes.post_id
                 WHERE title ILIKE %s
-            """
+                GROUP BY posts.id
+        """
     , (f"%{search}%",))
     try:
         # Scrollable Cursor
@@ -39,17 +41,21 @@ async def get_posts(search: str = "" , limit: int = 10, offset: int = 0):
     return posts
 
 
-@router.get("/{id}", response_model=Post)
+@router.get("/{id}", response_model=PostOut)
 async def get_post(id: int):
-    post = cur.execute("""
-                       SELECT *,
-                       (
-                           SELECT json_build_object('id', users.id, 'email', users.email, 'created_at', users.created_at)
-                           FROM users
-                           WHERE id = posts.owner_id
-                       ) AS owner
-                       FROM posts WHERE id = %s;
-                       """, (id,)).fetchone()
+    post = cur.execute(
+                """
+                        SELECT posts.*,
+                        (
+                            SELECT json_build_object('id', users.id, 'email', users.email, 'created_at', users.created_at)
+                            FROM users
+                            WHERE id = posts.owner_id
+                        ) AS owner,
+                        COUNT(votes.post_id) AS votes
+                        FROM posts LEFT JOIN votes ON posts.id = votes.post_id
+                        WHERE id = %s
+                        GROUP BY posts.id;
+                """, (id,)).fetchone()
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with id: {id} was not found"

@@ -3,7 +3,6 @@
 !/.gitignore
 
 __pycache__
-__pycache__/*
 
 # Ignore venv folder
 venv

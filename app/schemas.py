@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, conint, validator
 
 
 class PostModel(BaseModel):
@@ -17,6 +17,9 @@ class Post(PostModel):
     created_at: datetime
     owner_id: int
     owner: UserOut
+
+class PostOut(Post):
+    votes: int
     
 class UserModel(BaseModel):
     email: EmailStr
@@ -41,3 +44,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: str
+
+class VoteModel(BaseModel):
+    post_id: int
+    dir: conint(ge=0, le=1)
